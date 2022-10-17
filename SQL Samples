@@ -1,0 +1,167 @@
+SELECT *
+ FROM `casestudies-365514.Covid.covid_death` 
+ORDER BY 3,4
+-- Select data we are going to use.
+
+SELECT 
+  location, date, total_cases, new_cases, total_deaths, population
+FROM `casestudies-365514.Covid.covid_death`
+ORDER BY 1,2
+
+--looking at total cases vs total deaths.
+--Show percent chance of dying in United States.
+
+SELECT 
+  location, date, total_cases, total_deaths, (total_deaths/total_cases)*100 AS death_percentage
+FROM `casestudies-365514.Covid.covid_death`
+WHERE location = 'United States'
+ORDER BY 1,2
+
+--Looking at total cases vs popultion.
+--Shows percentage of population got covid in United States.
+
+SELECT 
+  location, date, population, total_cases, (total_cases/population)*100 AS population_death_percentage
+FROM `casestudies-365514.Covid.covid_death`
+WHERE location = 'United States'
+ORDER BY 1,2
+
+--looking at Countries with highest cases per population
+SELECT 
+  location, population, MAX(total_cases) AS highest_cases, MAX(total_cases/population)*100 AS population_case_percentage
+FROM `casestudies-365514.Covid.covid_death`
+Group by 
+location, Population
+ORDER BY population_case_percentage desc
+
+--noticed continent is null when the data is for a whole continent. to make sure it does not interfear with the querry I added a Where clause. 
+
+SELECT 
+  location, population, MAX(total_cases) AS highest_cases, MAX(total_cases/population)*100 AS population_case_percentage
+FROM `casestudies-365514.Covid.covid_death`
+Where continent is not null
+Group by 
+location, Population
+ORDER BY population_case_percentage desc
+
+--With only nulls in continent column
+SELECT 
+  location, continent, population, MAX(total_cases) AS highest_cases, MAX(total_cases/population)*100 AS population_case_percentage
+FROM `casestudies-365514.Covid.covid_death`
+Where continent is null
+Group by 
+continent, location, Population
+ORDER BY population_case_percentage desc
+
+--Looking at countries with highest deaths per populaiton
+SELECT 
+  location, MAX(total_deaths) AS TotalDeathCount
+FROM `casestudies-365514.Covid.covid_death`
+Where continent is not null 
+Group by 
+location
+ORDER BY TotalDeathCount desc
+
+--Break Down by Country
+--Country with highest death count
+SELECT 
+  location, MAX(total_deaths) AS TotalDeathCount
+FROM `casestudies-365514.Covid.covid_death`
+Where continent is not null 
+Group by 
+location
+ORDER BY TotalDeathCount desc
+
+--Continent with highest death count
+Select location, SUM(cast(new_deaths as int)) as TotalDeathCount
+From casestudies-365514.Covid.covid_death
+Where continent is null 
+and location not in ('World', 'European Union', 'International')
+Group by location
+order by TotalDeathCount desc
+
+--Infection count and percentage. 
+
+Select Location, Population, MAX(total_cases) as HighestInfectionCount,  Max((total_cases/population))*100 as PercentPopulationInfected
+From casestudies-365514.Covid.covid_death
+Group by Location, Population
+order by PercentPopulationInfected desc
+
+--
+
+Select Location, Population,date, MAX(total_cases) as HighestInfectionCount,  Max((total_cases/population))*100 as PercentPopulationInfected
+From casestudies-365514.Covid.covid_death
+Group by Location, Population, date
+order by PercentPopulationInfected desc
+
+--Global numbers
+SELECT 
+  SUM(new_cases) AS total_cases, SUM(new_deaths) AS total_deaths, SUM(new_deaths)/SUM(new_cases)*100 AS DeathPercentage
+FROM `casestudies-365514.Covid.covid_death`
+ORDER BY 1,2 
+
+Select SUM(new_cases) as total_cases, SUM(cast(new_deaths as int)) as total_deaths, SUM(cast(new_deaths as int))/SUM(New_Cases)*100 as DeathPercentage
+From casestudies-365514.Covid.covid_death
+where continent is not null 
+order by 1,2
+
+--Join Vacination Table to Deaths Table by Date
+--Looking at Total Population vs Vacination
+
+SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations, 
+Sum(vac.new_vaccinations) OVER(partition by dea.location ORDER BY dea.location, dea.date) AS rollingpeoplevacinated,
+(rollingpeoplevacinated/population)*100
+FROM `casestudies-365514.Covid.covid_death` AS dea
+JOIN `casestudies-365514.Covid.covid_vacination` AS vac
+ON  dea.location = vac.location
+AND dea.date = vac.date
+Where dea.continent is not null 
+ORDER BY 2,3
+
+--CTE to find the rolling count percentage of population that were vacinated over time. 
+
+WITH PopvsVac as 
+(
+SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations, 
+Sum(vac.new_vaccinations) OVER(partition by dea.location ORDER BY dea.location, dea.date) AS rollingpeoplevacinated
+FROM `casestudies-365514.Covid.covid_death` AS dea
+JOIN `casestudies-365514.Covid.covid_vacination` AS vac
+ON  dea.location = vac.location
+AND dea.date = vac.date
+Where dea.continent is not null 
+)
+
+SELECT *, (rollingpeoplevacinated/population)*100
+FROM PopvsVac
+
+
+WITH PopvsVac as 
+(
+SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations, 
+Sum(vac.new_vaccinations) OVER(partition by dea.location ORDER BY dea.location, dea.date) AS rollingpeoplevacinated
+FROM `casestudies-365514.Covid.covid_death` AS dea
+JOIN `casestudies-365514.Covid.covid_vacination` AS vac
+ON  dea.location = vac.location
+AND dea.date = vac.date
+Where dea.continent is not null 
+)
+
+SELECT *, max(rollingpeoplevacinated)
+FROM PopvsVac
+
+--Examining just the vacination data.
+Select *
+From casestudies-365514.Covid.covid_vacination
+
+--See difference between min and max Vaccines and Tests in each location. 
+Select 
+  location, 
+  MAX(total_tests) AS highest_test, 
+  MIN(total_tests) as lowest_tests, 
+  MAX(total_vaccinations) AS highest_vac, 
+  MIN(total_vaccinations) as lowest_vac
+From casestudies-365514.Covid.covid_vacination
+WHERE continent is not null
+Group By location
+ORDER BY location
+
