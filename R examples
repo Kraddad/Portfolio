@@ -1,0 +1,76 @@
+--Worked with creating visuals with ggplot and the palmer penguins data set. 
+
+library(ggplot2)
+library(palmerpenguins)
+ggplot(data=penguins)+
+  geom_smooth(mapping=aes(x=flipper_length_mm,y=body_mass_g)) +
+  geom_jitter(mapping=aes(x=flipper_length_mm,y=body_mass_g))
+
+ggplot(data=penguins)+
+  geom_smooth(mapping=aes(x=flipper_length_mm,y=body_mass_g,linetype=species))
+
+ggplot(data =diamonds) +
+  geom_bar(mapping=aes(x=cut, fill=clarity))
+
+ggplot(data=penguins)+
+  geom_point(mapping=aes(x=flipper_length_mm,y=body_mass_g,color=species)) + 
+  facet_wrap(~species)
+
+ggplot(data =diamonds) +
+  geom_bar(mapping=aes(x=color, fill=cut))+
+  facet_wrap(~cut)
+
+ggplot(data=penguins)+
+  geom_point(mapping=aes(x=flipper_length_mm,y=body_mass_g,color=species)) + 
+  facet_grid(sex~species)
+  
+-- Datasaurus ggplot
+install.packages('datasauRus')
+library('datasauRus')
+
+ggplot(datasaurus_dozen,aes(x=x,y=y,colour=dataset))+geom_point()+theme_void()+theme(legend.position ="none")+facet_wrap(~dataset,ncol=3)
+
+
+--Sample R Markdown Code
+
+---
+title: "R Markdown Intro"
+author: "Konrad"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Cars Data
+
+```{r cars}
+summary(cars)
+```
+
+## Cars Data Plots
+
+![Plot this way](https://cdn.pixabay.com/photo/2016/03/31/14/47/download-1292814_1280.png)
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+# Penguins Data Table
+
+
+```{r ggplot for penguins data}
+library(ggplot2)
+library(palmerpenguins)
+data(penguins)
+View(penguins)
+```
+
+# Penguins Plot
+
+```{r ggplot for penguin data visualization}
+ggplot(data=penguins)+
+  geom_point(mapping = aes(x=flipper_length_mm, y=body_mass_g))
+```
