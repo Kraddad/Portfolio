@@ -165,3 +165,46 @@ WHERE continent is not null
 Group By location
 ORDER BY location
 
+--Seeing difference per continent
+
+Select 
+  location, 
+  MAX(total_tests) AS highest_test, 
+  MIN(total_tests) as lowest_tests, 
+  MAX(total_vaccinations) AS highest_vac, 
+  MIN(total_vaccinations) as lowest_vac
+From casestudies-365514.Covid.covid_vacination
+WHERE continent is null
+Group By location
+ORDER BY highest_test DESC
+
+--lacks test totals for continent. 
+-- pull up continent totals using group by and max
+Select 
+  continent, 
+  MAX(total_tests) AS highest_test, 
+  MIN(total_tests) as lowest_tests, 
+  MAX(total_vaccinations) AS highest_vac, 
+  MIN(total_vaccinations) as lowest_vac
+From casestudies-365514.Covid.covid_vacination 
+Group By continent
+ORDER BY highest_test DESC
+
+--CTE to find total Test *still needs work(try Temp table instead)* 
+
+WITH TotalVacTest AS
+(Select 
+  continent, 
+  MAX(total_tests) AS highest_test, 
+  MIN(total_tests) as lowest_tests, 
+  MAX(total_vaccinations) AS highest_vac, 
+  MIN(total_vaccinations) as lowest_vac
+From casestudies-365514.Covid.covid_vacination 
+
+)
+
+SELECT
+  *, 
+  SUM(highest_test) AS total_test, 
+From TotalVacTest 
+Group By continent;
